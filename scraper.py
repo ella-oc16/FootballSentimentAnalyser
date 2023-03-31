@@ -1,28 +1,43 @@
 from getpass import getpass
 from time import sleep
 import pandas as pd
-import os
+import datetime
 
+import selenium.webdriver
 from selenium.webdriver.common.keys import Keys
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException, ElementClickInterceptedException
 from msedge.selenium_tools import Edge, EdgeOptions
 from selenium.webdriver.common.by import By
 
 class Scraper:
     def __init__(self):
         self.PATH = "C:/Users/oconn/Downloads/edgedriver_win64/msedgedriver.exe"
+        self.scraper_subject : str
 
-    def getTweetData(self, article):
+    def getTweetData(self, article) -> tuple:
         """
-        extract the data from an article on scroll page
-        return info in a tuple
+        Extracts data from an individual tweet and returns this data in form of tuple
         """
-        TweetContent = article.find_element(By.XPATH,".//div[@data-testid='tweetText']").text
+        try:
+            TweetContent = article.find_element(By.XPATH,".//div[@data-testid='tweetText']").text
+        except StaleElementReferenceException:
+            return
+        except NoSuchElementException:
+            return
+
         # if spam is detected, do not return the tweet
         if self.spamDetector(TweetContent):
             return
         
-        Reply = article.find_element(By.XPATH,".//div[@data-testid='reply']").text
+        # if not in english, do not return tweet
+        try:
+            Language = article.find_element(By.XPATH, ".//div[@lang='en']")
+        except NoSuchElementException:
+            #print('not in english! ---------')
+            #print(TweetContent)
+            return
+
+        #Reply = article.find_element(By.XPATH,".//div[@data-testid='reply']").text
         Retweet = article.find_element(By.XPATH,".//div[@data-testid='retweet']").text
         Like = article.find_element(By.XPATH,".//div[@data-testid='like']").text
 
@@ -32,14 +47,17 @@ class Scraper:
             return      # if article has no timestamp (i.e. sponsored content), don't create a tweet
 
         # make a tuple for tweet
-        tweet = (TimeStamp, TweetContent, Reply, Retweet, Like)
+        tweet = (TimeStamp, TweetContent, Retweet, Like)
         return tweet
     
-    def findTweets(self, subject, category):
+    def findTweets(self, subject, category, time_gap=5, maxTweets=300) -> list:
         """
         open driver and navigate to tweet scroll page and return a list of tuples of the tweet content
         """
+        self.scraper_subject = subject
         options = EdgeOptions()
+        options.headless = True
+        options.add_argument('log-level=3')
         options.use_chromium = True
         driver = Edge(self.PATH, options=options)
         driver.get("https://twitter.com/login")
@@ -57,8 +75,13 @@ class Scraper:
         sleep(5)
         explore = driver.find_element(By.XPATH, "//a[@data-testid='AppTabBar_Explore_Link']")
         explore.click()
+        try:
+            explore.click()
+        except ElementClickInterceptedException:
+            print('ERROR - Pop Up preventing tweet scraping, exiting scraper')
+            return
 
-        sleep(5)
+        sleep(3)
         search_box = driver.find_element(By.XPATH,"//input[@data-testid='SearchBox_Search_Input']")
         search_box.send_keys(subject)
         search_box.send_keys(Keys.ENTER)
@@ -79,15 +102,29 @@ class Scraper:
         
         while scrolling:
             articles = driver.find_elements(By.XPATH,"//article[@data-testid='tweet']")
-            print('Scraping..., no. of tweets scraped: ', len(Tweets))
+            print('Scraping...\nNo. of tweets scraped: ', len(Tweets))
+
+            # set upper limit on amount of tweets that can be collected
+            if len(Tweets) >= maxTweets:
+                scrolling = False
+                print('FINISHED SCRAPING - Exceeded Upper Limit on Tweets')
+                break
             
-            #only check last 15 tweets loaded
+            # only check last 15 tweets loaded
             for article in articles[-15:]:
                 tweet = self.getTweetData(article)
                 if tweet:
-                    # create a unique id for each tweet by just squishing all of its content together into a string
+                    # if we're looking at lastest tweets, check that tweet is no older than time gap
+                    # if it is, stop scrolling
+                    datetime_of_tweet = datetime.datetime.strptime(tweet[0][:19], '%Y-%m-%dT%H:%M:%S')
+                    if category == 'Latest' and datetime_of_tweet < datetime.datetime.now() - datetime.timedelta(minutes=time_gap):
+                        print('FINISHED SCRAPING - Retrieved All Tweets From Last %s Minutes' % time_gap)
+                        scrolling = False
+                        break
+
+                    # create a unique id for each tweet by squishing all of its content together into a string
                     tweet_id = ''.join(tweet)
-                    # check if this id is in already in id set before appending the tweet to our list
+                    # check if this id is already in id set before appending the tweet to our list
                     if tweet_id not in tweet_ids:
                         Tweets.append(tweet)
                         tweet_ids.add(tweet_id)                
@@ -98,10 +135,11 @@ class Scraper:
                 sleep(2)
                 current_scroll_bar_pos = driver.execute_script("return window.pageYOffset;")
                 
+                # check if the current scroll bar position is same as previous scroll bar position
                 if current_scroll_bar_pos == last_scroll_bar_pos:
                     scroll_attempt += 1
                     if scroll_attempt >= 3:
-                        print('Reached bottom of scoll page, stopping scraping')
+                        print('FINISHED SCRAPING - Bottom of Page Reached')
                         scrolling = False   # breaks out of outer loop
                         break
                     else:
@@ -113,28 +151,19 @@ class Scraper:
         return Tweets
 
     def spamDetector(self, tweet_content):
-        spam_terms = ['RT', 'stream', 'mobile', 'LIVE', 'Live', 'STREAM', 'HD', 'WATCH', 'watch']
+        spam_terms = ['RT', 'stream', 'mobile', 'LIVE', 'Live', 'STREAM', 'HD', 'WATCH', 'watch', 'GIVEAWAY']
         for term in spam_terms:
             if term in tweet_content:
                 #print('spam detected')
                 return True
         return False
 
-    def tweetDF(self, list_of_tweets):
-        df = pd.DataFrame(list_of_tweets, columns =['TimeStamp', 'TweetContent', 'Replys', 'Retweets', 'Likes'])
+    # Returns a dataframe of the tweets along with the subject of the dataframe
+    def tweetDF(self, tweets : list):
+        """
+        Takes in the list of tweets and returns a dataframe and the subject of the dataframe
+        """
+        df = pd.DataFrame(tweets, columns =['TimeStamp', 'TweetContent', 'Retweets', 'Likes'])
         df.index.name = 'Index'
-        return df
+        return df, self.scraper_subject
     
-    def openDFExcel(self, df):
-        df.to_excel("C:/Users/oconn/OneDrive/Documents/tweets_dataframe.xlsx",index=False)
-        os.system('start "excel" "C:/Users/oconn/OneDrive/Documents/tweets_dataframe.xlsx"')
-
-#create a scraper object
-scraper = Scraper()
-
-tweets = scraper.findTweets('watch', 'Top')
-dataframe = scraper.tweetDF(tweets)
-print(dataframe.head())
-
-# Excel dataframe:
-#scraper.openDFExcel(dataframe)
