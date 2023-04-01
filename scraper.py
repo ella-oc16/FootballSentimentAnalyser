@@ -1,7 +1,7 @@
 from getpass import getpass
-from time import sleep
 import pandas as pd
 import datetime
+import time
 
 import selenium.webdriver
 from selenium.webdriver.common.keys import Keys
@@ -56,23 +56,23 @@ class Scraper:
         """
         self.scraper_subject = subject
         options = EdgeOptions()
-        options.headless = True
+        #options.headless = True
         options.add_argument('log-level=3')
         options.use_chromium = True
         driver = Edge(self.PATH, options=options)
         driver.get("https://twitter.com/login")
 
-        sleep(3)
+        time.sleep(3)
         username = driver.find_element(By.XPATH,"//input[@name='text']")
         username.send_keys('ellaoc16')
         username.send_keys(Keys.RETURN)
 
-        sleep(2)
+        time.sleep(2)
         password = driver.find_element(By.XPATH, "//input[@name='password']")
         password.send_keys('QY_d7Kkjq')
         password.send_keys(Keys.RETURN)
 
-        sleep(5)
+        time.sleep(5)
         explore = driver.find_element(By.XPATH, "//a[@data-testid='AppTabBar_Explore_Link']")
         explore.click()
         try:
@@ -81,11 +81,11 @@ class Scraper:
             print('ERROR - Pop Up preventing tweet scraping, exiting scraper')
             return
 
-        sleep(3)
+        time.sleep(3)
         search_box = driver.find_element(By.XPATH,"//input[@data-testid='SearchBox_Search_Input']")
         search_box.send_keys(subject)
         search_box.send_keys(Keys.ENTER)
-        sleep(5)
+        time.sleep(5)
 
         if category == 'Top':
             pass
@@ -99,7 +99,10 @@ class Scraper:
 
         last_scroll_bar_pos = driver.execute_script("return window.pageYOffset;")
         scrolling = True
-        
+
+        #start timer
+        timeout = time.time() + 60*2
+
         while scrolling:
             articles = driver.find_elements(By.XPATH,"//article[@data-testid='tweet']")
             print('Scraping...\nNo. of tweets scraped: ', len(Tweets))
@@ -109,6 +112,11 @@ class Scraper:
                 scrolling = False
                 print('FINISHED SCRAPING - Exceeded Upper Limit on Tweets')
                 break
+
+            if time.time() > timeout:
+                scrolling = False
+                print('FINISHED SCRAPING - Timeout Exceeded')
+                break
             
             # only check last 15 tweets loaded
             for article in articles[-15:]:
@@ -117,6 +125,7 @@ class Scraper:
                     # if we're looking at lastest tweets, check that tweet is no older than time gap
                     # if it is, stop scrolling
                     datetime_of_tweet = datetime.datetime.strptime(tweet[0][:19], '%Y-%m-%dT%H:%M:%S')
+                    datetime_of_tweet = datetime_of_tweet + datetime.timedelta(hours=1)
                     if category == 'Latest' and datetime_of_tweet < datetime.datetime.now() - datetime.timedelta(minutes=time_gap):
                         print('FINISHED SCRAPING - Retrieved All Tweets From Last %s Minutes' % time_gap)
                         scrolling = False
@@ -132,7 +141,7 @@ class Scraper:
             scroll_attempt = 0
             while True:
                 driver.execute_script('window.scrollTo(0,document.body.scrollHeight);')
-                sleep(2)
+                time.sleep(2)
                 current_scroll_bar_pos = driver.execute_script("return window.pageYOffset;")
                 
                 # check if the current scroll bar position is same as previous scroll bar position
@@ -143,7 +152,7 @@ class Scraper:
                         scrolling = False   # breaks out of outer loop
                         break
                     else:
-                        sleep(2)    # attempt another scroll
+                        time.sleep(2)    # attempt another scroll
                 else:
                     last_scroll_bar_pos = current_scroll_bar_pos
                     break
