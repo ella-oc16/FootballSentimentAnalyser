@@ -23,9 +23,9 @@ class teamData():
 
         # if team has a hashtag, search up hashtag in scraper rather than team name
         hashtag_dict = {'Man Utd':'#MUFC', 
-                        'Man City':'#ManCity', 
-                        'Liverpool':'#LFC', 
+                        'Leeds': '#LUFC',
                         'Newcastle':'#NUFC'}
+        #'Liverpool':'#LFC', 'Man City':'#ManCity',
         if teamName in hashtag_dict:
             self.hashtag = hashtag_dict[teamName]
         else:
@@ -38,10 +38,10 @@ class teamData():
         """
         scraper = Scraper()
         SC = SentimentClassifier()
-        tweets = scraper.findTweets(self.hashtag, 'Top', self.time_gap, maxTweets=100)
+        tweets = scraper.findTweets(self.hashtag, 'Latest', self.time_gap, maxTweets=150)
 
         if not tweets:
-            print('No Tweets Collected at this Time Interval due to Browser Error')
+            print('No Tweets Collected at this Time Interval')
             return pd.DataFrame()
         
         # make dataframe and label using the search subject
@@ -82,7 +82,7 @@ class teamData():
         """
         Takes list of tuples of sentiment data and returns the overall averages for each sentiment
         """
-        if not self.data[0]:
+        if len(self.data) == 0:
             print('No data')
             return
         polarities = []
@@ -231,6 +231,7 @@ class teamData():
         style.use('ggplot')
         plt.plot(x, y, color='m')
         plt.title('Match Odds of %s' % self.team_name)
+        plt.ylim(0,100)
         plt.xlabel('Time')
         plt.ylabel('Odds')
 

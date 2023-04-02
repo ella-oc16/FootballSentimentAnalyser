@@ -45,7 +45,6 @@ class AnalyseMatch():
                         TEAM.data.append(sentiment_data)
                         print(TEAM.data)
         
-                
                 time_gap_counter += 1
         
         # when have collected all data and exited loop:
@@ -62,7 +61,7 @@ class AnalyseMatch():
 
         # check if data was collected before trying to make graphs
         # by checking if first tuple in data list is empty
-        if not TEAM.data[0]:
+        if len(TEAM.data) == 0:
             print('No Data Collected for %s' % TEAM.team_name)
         else: 
             fig1 = plt.figure(figsize=(7.50, 3.50))

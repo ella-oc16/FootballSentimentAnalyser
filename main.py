@@ -16,12 +16,10 @@ def run():
     fixtures = API.upcomingFixtures(168)
     print('\n')
 
-    fixtures.append({'index':16, 'kickOffTime':datetime.datetime.now() + datetime.timedelta(minutes=1),
-                     'homeTeam':'Man City', 'awayTeam':'Liverpool'})
+    fixtures.append({'index':17, 'kickOffTime':datetime.datetime.now() + datetime.timedelta(minutes=1), 'homeTeam':'West Ham', 'awayTeam':'Southampton'})
 
     fixture_num = int(input("Fixture Number:\n>>> "))
     fixture = fixtures[fixture_num]
-    print(fixture)
 
     # create an analyse match object with this fixture as the input
     match = AnalyseMatch(fixture, API=API)
@@ -46,3 +44,4 @@ if __name__ == "__main__":
 
 
 
+#fixtures.append({'index':17, 'kickOffTime':datetime.datetime.now() + datetime.timedelta(minutes=1), 'homeTeam':'Man City', 'awayTeam':'Liverpool'})

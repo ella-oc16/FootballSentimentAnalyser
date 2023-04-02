@@ -3,7 +3,6 @@ import pandas as pd
 import datetime
 import time
 
-import selenium.webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException, ElementClickInterceptedException
 from msedge.selenium_tools import Edge, EdgeOptions
@@ -56,19 +55,27 @@ class Scraper:
         """
         self.scraper_subject = subject
         options = EdgeOptions()
-        #options.headless = True
+        options.headless = True
         options.add_argument('log-level=3')
         options.use_chromium = True
         driver = Edge(self.PATH, options=options)
         driver.get("https://twitter.com/login")
 
         time.sleep(3)
-        username = driver.find_element(By.XPATH,"//input[@name='text']")
+        try:
+            username = driver.find_element(By.XPATH,"//input[@name='text']")
+        except (NoSuchElementException, StaleElementReferenceException) as e:
+            print('ERROR - Pop Up preventing tweet scraping, exiting scraper')
+            return
         username.send_keys('ellaoc16')
         username.send_keys(Keys.RETURN)
 
         time.sleep(2)
-        password = driver.find_element(By.XPATH, "//input[@name='password']")
+        try:
+            password = driver.find_element(By.XPATH, "//input[@name='password']")
+        except (NoSuchElementException, StaleElementReferenceException) as e:
+            print('ERROR - Pop Up preventing tweet scraping, exiting scraper')
+            return
         password.send_keys('QY_d7Kkjq')
         password.send_keys(Keys.RETURN)
 
@@ -100,8 +107,9 @@ class Scraper:
         last_scroll_bar_pos = driver.execute_script("return window.pageYOffset;")
         scrolling = True
 
-        #start timer
-        timeout = time.time() + 60*2
+        # set a timout of half the time interval minus 1 min
+        max_scraping_mins = (time_gap / 2) - 1
+        timeout = time.time() + 60*max_scraping_mins
 
         while scrolling:
             articles = driver.find_elements(By.XPATH,"//article[@data-testid='tweet']")
@@ -112,6 +120,7 @@ class Scraper:
                 scrolling = False
                 print('FINISHED SCRAPING - Exceeded Upper Limit on Tweets')
                 break
+            
 
             if time.time() > timeout:
                 scrolling = False

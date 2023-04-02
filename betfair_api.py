@@ -50,7 +50,7 @@ class betfairAPI():
         """
         Input parameter 'hours' refers to number of hours into future you want to get market catalogue
         """
-        marketStartTime = (datetime.datetime.now() - datetime.timedelta(hours=2))
+        marketStartTime = (datetime.datetime.now() - datetime.timedelta(hours=6))
         marketStartTime = marketStartTime.strftime('%Y-%m-%dT%H:%M:%SZ')
         marketEndTime = (datetime.datetime.now() + datetime.timedelta(hours=hours))
         marketEndTime = marketEndTime.strftime('%Y-%m-%dT%H:%M:%SZ')
@@ -140,15 +140,15 @@ class betfairAPI():
         return percentage_odds
 
 
-
 """
+
 API = betfairAPI('Premier League')
 API.upcomingFixtures(120)
 
 marketCatalogue = API.getMarketCatalogue(120)
 print(marketCatalogue)
 
-team_name = 'Bournemouth'
+team_name = 'Man City'
 fixture = API.findFixture(marketCatalogue, team_name)
 print(fixture)
 
