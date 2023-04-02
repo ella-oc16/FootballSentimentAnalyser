@@ -1,4 +1,6 @@
 # Project101
-web scrape tweets 
-do about football matches
-predict score 
+- Twitter Web Scraper 
+- Sentiment Analyser for Tweets
+- Data Handler
+- Match Analyser
+- Betfair API
