@@ -31,6 +31,7 @@ class teamData():
         else:
             self.hashtag = teamName
      
+
     def getSentimentDF(self, open=False):
         """
         Scrapes tweets, analyses sentiment and returns full dataframe
@@ -60,6 +61,7 @@ class teamData():
 
         return sentiment_df
     
+
     def getSentimentAverages(self, df, time) -> tuple:
         """
         Takes the sentiment dataframe and returns the average values of all sentiment columns
@@ -78,6 +80,7 @@ class teamData():
             print('No Tweets Collected in this Time Gap')
             return
     
+
     def overallSentiments(self) -> tuple:
         """
         Takes list of tuples of sentiment data and returns the overall averages for each sentiment
@@ -100,6 +103,7 @@ class teamData():
         # return the average of each list in tuple form
         return (overall_avg_polarity, overall_avg_negativity, overall_avg_positivity)
     
+
     def sentimentBarGraph(self, sentiment:str):
         style.use('ggplot')
         fig, ax = plt.subplots(figsize=(7.5, 1.75))
@@ -118,6 +122,7 @@ class teamData():
         ax.get_yaxis().set_visible(False)
         plt.xlim(0,1)
         ax.set_title('Overall %s = %f' % (sentiment_str, np.round(self.overallSentiments()[i], decimals=3)))
+
 
     def polarityGraph(self):
         """
@@ -139,6 +144,7 @@ class teamData():
         plt.xlabel('Time')
         plt.ylabel('Average Polarity')
 
+
     def negativeGraph(self):
         """
         Takes the tuple of data and returns polarity graph
@@ -159,6 +165,7 @@ class teamData():
         plt.xlabel('Time')
         plt.ylabel('Negative Sentiment')
     
+
     def positiveGraph(self):
         """
         Takes the tuple of data and returns polarity graph
@@ -179,6 +186,7 @@ class teamData():
         plt.xlabel('Time')
         plt.ylabel('Positive Sentiment')
     
+
     def makeWordCloud(self, word_dict:dict, sentiment:str):
         # set colour scheme
         if sentiment == 'p':
@@ -204,6 +212,7 @@ class teamData():
         plt.axis("off")
         plt.tight_layout(pad=0)
 
+
     def saveData(self):
         """
         Writes data attributes of team to output file
@@ -217,6 +226,7 @@ class teamData():
                 print('Positive Words: ', self.pos_words)
                 print('Negative Words: ', self.neg_words)
                 print('Match Odds: ', self.matchOdds)
+
 
     def matchOddsGraph(self):
         """

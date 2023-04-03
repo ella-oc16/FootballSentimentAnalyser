@@ -16,7 +16,7 @@ def run():
     fixtures = API.upcomingFixtures(168)
     print('\n')
 
-    fixtures.append({'index':17, 'kickOffTime':datetime.datetime.now() + datetime.timedelta(minutes=1), 'homeTeam':'West Ham', 'awayTeam':'Southampton'})
+    fixtures.append({'index':17, 'kickOffTime':datetime.datetime.now() + datetime.timedelta(minutes=1), 'homeTeam':'Everton', 'awayTeam':'Tottenham'})
 
     fixture_num = int(input("Fixture Number:\n>>> "))
     fixture = fixtures[fixture_num]
@@ -42,6 +42,3 @@ def run():
 if __name__ == "__main__":
    run()
 
-
-
-#fixtures.append({'index':17, 'kickOffTime':datetime.datetime.now() + datetime.timedelta(minutes=1), 'homeTeam':'Man City', 'awayTeam':'Liverpool'})

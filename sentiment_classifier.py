@@ -24,8 +24,11 @@ class SentimentClassifier():
         self.pos_words = {}
         self.neg_words = {}
 
-    # Preprocess text (username and link placeholders) for Roberta
+    
     def preprocess(self, text):
+        """
+        Preprocesses text (username and link placeholders) for Roberta
+        """
         new_text = []
         for t in text.split(" "):
             t = '@user' if t.startswith('@') and len(t) > 1 else t
@@ -33,8 +36,11 @@ class SentimentClassifier():
             new_text.append(t)
         return " ".join(new_text)
     
-    # Remove hyperlinks and hashtags for VADER
+    
     def extractText(self, text):  
+        """
+        Removes hyperlinks and hashtags for VADER
+        """
         result = re.sub("http\S+", "", text)
         result = re.sub("#\S+", "", result)
         result = re.sub("@\S+", "", result)
@@ -91,6 +97,7 @@ class SentimentClassifier():
 
         return scores_dict
     
+
     def scoresDF(self, df):
         """
         Finds the sentiment scores dict for each tweet in the tweets dataframe
@@ -110,6 +117,7 @@ class SentimentClassifier():
         
         return scores_df
     
+
     def openDFExcel(self, df, subject):
         """
         Opens a dataframe in excel with the subject of the tweets in filename
@@ -140,6 +148,7 @@ class SentimentClassifier():
         avg_neu = sum(neu)/len(neu)
         return {'Avg Negative':avg_neg, 'Avg Positive':avg_pos, 'Avg Neutral':avg_neu}
     
+
     def averagePolarity(self, df):
         """
         Returns the average polarity of an entire df
@@ -150,6 +159,7 @@ class SentimentClassifier():
         if len(tot) == 0:
             return
         return sum(tot)/len(tot)
+    
     
     def frequencyAdjectives(self, text, classification) -> None:
         """

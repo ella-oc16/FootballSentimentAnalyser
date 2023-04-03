@@ -85,6 +85,7 @@ class AnalyseMatch():
 
         print('Saved!')
             
+            
     def save_multi_image(self, filename):
         pp = PdfPages(filename)
         fig_nums = plt.get_fignums()

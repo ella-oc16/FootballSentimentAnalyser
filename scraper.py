@@ -13,6 +13,7 @@ class Scraper:
         self.PATH = "C:/Users/oconn/Downloads/edgedriver_win64/msedgedriver.exe"
         self.scraper_subject : str
 
+
     def getTweetData(self, article) -> tuple:
         """
         Extracts data from an individual tweet and returns this data in form of tuple
@@ -49,6 +50,7 @@ class Scraper:
         tweet = (TimeStamp, TweetContent, Retweet, Like)
         return tweet
     
+
     def findTweets(self, subject, category, time_gap=5, maxTweets=300) -> list:
         """
         open driver and navigate to tweet scroll page and return a list of tuples of the tweet content
@@ -168,6 +170,7 @@ class Scraper:
         
         return Tweets
 
+
     def spamDetector(self, tweet_content):
         spam_terms = ['RT', 'stream', 'mobile', 'LIVE', 'Live', 'STREAM', 'HD', 'WATCH', 'watch', 'GIVEAWAY']
         for term in spam_terms:
@@ -175,6 +178,7 @@ class Scraper:
                 #print('spam detected')
                 return True
         return False
+
 
     # Returns a dataframe of the tweets along with the subject of the dataframe
     def tweetDF(self, tweets : list):
