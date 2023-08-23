@@ -1,4 +1,4 @@
-# Project101
+# Football Sentiment Analyser
 - Twitter Web Scraper 
 - Sentiment Analyser for Tweets
 - Data Handler
